@@ -5,19 +5,29 @@
 
 void send_char(pid_t server_pid, char c)
 {
-    int bit;
+    int digit = 7;
+	while (digit >= 0)
+	{
+		if (c & (1 << digit))
+			kill(server_pid, SIGUSR1);
+		else
+			kill(server_pid, SIGUSR2);
+		digit--;
+		usleep(100);
+	}
+    // int bit;
 
-    bit = 0;
-    while(bit < 8)
-    {
-        if(c & (1 << bit))
-            kill(server_pid, SIGUSR1);
-        else
-            kill(server_pid, SIGUSR2);
+    // bit = 0;
+    // while(bit < 8)
+    // {
+    //     if(c & (1 << bit))
+    //         kill(server_pid, SIGUSR1);
+    //     else
+    //         kill(server_pid, SIGUSR2);
 
-        usleep(100);
-        bit++;
-    }
+    //     bit++;
+    //     usleep(100);
+    // }
 }
 
 int main(int argc, char *argv[])

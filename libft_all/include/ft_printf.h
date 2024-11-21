@@ -27,5 +27,4 @@ int	prt_unsigned(unsigned int n);
 int	prt_ptr(void *adr);
 int	prt_hexa(unsigned int nbr, bool upper_case);
 
-
 #endif /* FT_PRINTF_H */

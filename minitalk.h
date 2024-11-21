@@ -13,12 +13,12 @@
 #ifndef MINITALK_H
 # define MINITALK_H
 
-#include <signal.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include "libft_all/include/libft.h"
-#include "libft_all/include/ft_printf.h"
-// #include <string>
+# include "libft_all/include/ft_printf.h"
+# include "libft_all/include/libft.h"
+# include <signal.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
+# include <unistd.h>
 
 #endif

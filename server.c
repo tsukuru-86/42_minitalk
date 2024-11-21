@@ -6,7 +6,7 @@
 /*   By: tsukuru <tsukuru@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/19 09:32:57 by tsukuru           #+#    #+#             */
-/*   Updated: 2024/11/20 18:21:05 by tsukuru          ###   ########.fr       */
+/*   Updated: 2024/11/22 07:12:16 by tsukuru          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,12 @@ static volatile sig_atomic_t g_data = 0;
 void handle_signal(int sig, siginfo_t *info, void *context)
 {
     (void)context;
-    static pid_t client_pid = 0;
+    (void)info;
+    // static pid_t client_pid = 0;
     unsigned char c;
     int bit_count;
 
-    client_pid = info->si_pid;
+    // client_pid = info->si_pid;
     bit_count = (g_data >> 8) & 0xFF;  // ビットカウントを取得
 
     // 新しいビットを追加
@@ -36,16 +37,16 @@ void handle_signal(int sig, siginfo_t *info, void *context)
     {
         c = (unsigned char)(g_data & 0xFF);
         write(1, &c, 1);
-        if (client_pid)
-            kill(client_pid, SIGUSR1);  // 確認シグナルを送信
+        // if (client_pid)
+        //     kill(client_pid, SIGUSR1);  // 確認シグナルを送信
         g_data = 0;  // リセット
     }
     else
     {
         // ビットカウントを保存
         g_data |= (bit_count << 8);
-        if (client_pid)
-            kill(client_pid, SIGUSR2);
+        // if (client_pid)
+        //     kill(client_pid, SIGUSR2);
     }
 }
 
@@ -76,39 +77,3 @@ int main(void)
         pause();
     return (0);
 }
-
-// #include "minitalk.h"
-
-// static volatile sig_atomic_t	g_char = 0;
-
-// void	handle_signal(int sig)
-// {
-// 	static int		bit_count;
-// 	unsigned char	c;
-
-// 	// bit_count = 0;
-// 	g_char = g_char << 1;
-// 	if (sig == SIGUSR1)
-// 		g_char |= 1;
-// 	bit_count++;
-// 	if (bit_count == 8)
-// 	{
-// 		c = (unsigned char)g_char;
-// 		write(1, &c, 1);
-// 		fflush(stdout);
-// 		g_char = 0;
-// 		bit_count = 0;
-// 	}
-// }
-
-// int	main(void)
-// {
-// 	ft_printf("Current PID: %d\n", getpid());
-// 	signal(SIGUSR1, handle_signal);
-// 	signal(SIGUSR2, handle_signal);
-// 	while (1)
-// 	{
-//         pause();
-// 	}
-// 	return (0);
-// }

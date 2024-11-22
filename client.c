@@ -14,108 +14,87 @@
 #include "minitalk.h"
 #include <errno.h>
 
-static int g_transmission_complete = 0;
+static int	g_transmission_complete = 0;
 
-// void signal_handler(int sig)
-// {
-//     (void)sig;
-//     g_transmission_complete = 1;
-// }
-
-void send_message(pid_t server_pid, const char *str)
+void	signal_handler(int sig)
 {
-    int bit;
-    char c;
-    // struct sigaction sa;
-    
-    // // シグナルハンドラの設定
-    // sa.sa_handler = signal_handler;
-    // sigemptyset(&sa.sa_mask);
-    // sa.sa_flags = SA_RESTART;
-    // if (sigaction(SIGUSR1, &sa, NULL) == -1 || sigaction(SIGUSR2, &sa, NULL) == -1)
-    // {
-    //     ft_printf("Error: Failed to setup signal handlers\n");
-    //     exit(EXIT_FAILURE);
-    // }
-
-    while (*str)
-    {
-        c = *str;
-        bit = 7;
-        while (bit >= 0)
-        {
-            g_transmission_complete = 0;
-            
-            // エラーチェック付きのシグナル送信
-            if (kill(server_pid, (c & (1 << bit)) ? SIGUSR1 : SIGUSR2) == -1)
-            {
-                if (errno == ESRCH)
-                    ft_printf("Error: Server process (PID: %d) not found\n", server_pid);
-                else
-                    ft_printf("Error: Failed to send signal (errno: %d)\n", errno);
-                exit(EXIT_FAILURE);
-            }
-
-            // 制御された待機
-            if (bit > 0)
-            {
-                for (int i = 0; i < 50 && !g_transmission_complete; i++)
-                    usleep(100);
-            }
-            else
-            {
-                usleep(800); // 文字の最後のビットの後で長めの待機
-            }
-            bit--;
-        }
-        str++;
-    }
+	(void)sig;
+	g_transmission_complete = 1;
 }
 
-int validate_server(pid_t pid)
+static void	setup_signal_handlers(void)
 {
-    // プロセスの存在確認
-    if (kill(pid, 0) == -1)
-    {
-        if (errno == ESRCH)
-            ft_printf("Error: Server process (PID: %d) does not exist\n", pid);
-        else if (errno == EPERM)
-            ft_printf("Error: Permission denied to send signals to PID %d\n", pid);
-        else
-            ft_printf("Error: Unknown error while checking server PID\n");
-        return (0);
-    }
-    return (1);
+	struct sigaction	sa;
+
+	sa.sa_handler = signal_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	if (sigaction(SIGUSR1, &sa, NULL) == -1 || sigaction(SIGUSR2, &sa, NULL) == -1)
+	{
+		ft_printf("Error: Failed to setup signal handlers\n");
+		exit(1);
+	}
 }
 
-int main(int argc, char *argv[])
+void	signal_roop(pid_t server_pid, int bit, char c)
 {
-    pid_t server_pid;
+	g_transmission_complete = 0;
+	if (kill(server_pid, (c & (1 << bit)) ? SIGUSR1 : SIGUSR2) == -1)
+	{
+		ft_printf("Error.\n");
+		exit(1);
+	}
+	usleep(100);
+}
 
-    // 引数チェック
-    if (argc != 3)
-    {
-        ft_printf("Usage: %s <server-pid> <string>\n", argv[0]);
-        return (EXIT_FAILURE);
-    }
+void	send_message(pid_t server_pid, char *str)
+{
+	int		bit;
+	char	c;
 
-    // PID変換とバリデーション
-    server_pid = ft_atoi(argv[1]);
-    if (server_pid <= 0)
-    {
-        ft_printf("Error: Invalid PID number\n");
-        return (EXIT_FAILURE);
-    }
+	setup_signal_handlers();
+	while (*str)
+	{
+		c = *str;
+		bit = 7;
+		while (bit >= 0)
+		{
+			signal_roop(server_pid, bit, c);
+			bit--;
+		}
+		str++;
+	}
+}
 
-    // サーバープロセスの確認
-    if (!validate_server(server_pid))
-        return (EXIT_FAILURE);
+int	validate_server(pid_t pid)
+{
+	if (kill(pid, 0) == -1)
+	{
+		ft_printf("Eroor: Unable to Communicate with PID %d: %s\n", pid, strerror(errno));
+		return (0);
+	}
+	return (1);
+}
 
-    // メッセージ送信
-    send_message(server_pid, argv[2]);
-    send_message(server_pid, "\n");
+int	main(int argc, char *argv[])
+{
+	pid_t	server_pid;
 
-    // 最後のビットの送信を確実にするための待機
-    usleep(1000);
-    return (EXIT_SUCCESS);
+	if (argc != 3)
+	{
+		ft_printf("Usage: %s <server-pid> <string>\n", argv[0]);
+		return (1);
+	}
+	server_pid = ft_atoi(argv[1]);
+	if (server_pid <= 0)
+	{
+		ft_printf("Error: Invalid PID number\n");
+		return (1);
+	}
+	if (!validate_server(server_pid))
+		return (1);
+	send_message(server_pid, argv[2]);
+	send_message(server_pid, "\n");
+	usleep(1000);
+	return (0);
 }

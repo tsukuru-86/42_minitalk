@@ -54,7 +54,7 @@ void	signal_roop(pid_t server_pid, int bit, char c)
 		ft_printf("Error: Signal failed for PID %d\n", server_pid);
 		exit(1);
 	}
-	usleep(100);
+	usleep(700);
 }
 
 void	send_message(pid_t server_pid, char *str)
@@ -75,16 +75,6 @@ void	send_message(pid_t server_pid, char *str)
 		str++;
 	}
 }
-
-// int	validate_server(pid_t pid)
-// {
-// 	if (kill(pid, 0) == -1)
-// 	{
-// 		ft_printf("Error: Invalid PID %d\n", pid);
-// 		return (0);
-// 	}
-// 	return (1);
-// }
 
 int	main(int argc, char *argv[])
 {
